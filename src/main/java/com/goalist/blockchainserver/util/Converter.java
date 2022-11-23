@@ -8,7 +8,14 @@ import com.goalist.blockchainserver.entity.TransactionData;
 import com.goalist.blockchainserver.model.Block;
 import com.goalist.blockchainserver.model.Transaction;
 import com.goalist.blockchainserver.model.TransactionPool;
+import org.apache.tomcat.util.buf.HexUtils;
 
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,5 +100,17 @@ public class Converter {
             transactionResponses.add(transactionResponse);
         }
         return transactionResponses;
+    }
+
+    public static PublicKey convertPublicKeyFromHexString(String hexString) throws Exception {
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(HexUtils.fromHexString(hexString));
+        KeyFactory kf = KeyFactory.getInstance("EC");
+        return kf.generatePublic(spec);
+    }
+
+    public static PrivateKey convertPrivateKeyFromHexString(String hexString) throws Exception {
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(HexUtils.fromHexString(hexString));
+        KeyFactory kf = KeyFactory.getInstance("EC");
+        return kf.generatePrivate(spec);
     }
 }
