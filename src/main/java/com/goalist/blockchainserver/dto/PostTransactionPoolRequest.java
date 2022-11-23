@@ -11,6 +11,7 @@ public class PostTransactionPoolRequest {
     private String senderBlockchainAddress;
     private String recipientBlockchainAddress;
     private double value;
-    private String signature;
+    //    private String signature;
+    private String privateKey;
     private String publicKey;
 }
