@@ -1,6 +1,7 @@
 package com.goalist.blockchainserver.model;
 
 import com.goalist.blockchainserver.util.Sha256Algorithm;
+import org.apache.tomcat.util.buf.HexUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.UnsupportedEncodingException;
@@ -13,6 +14,12 @@ public class Wallet {
 
     public Wallet() throws NoSuchAlgorithmException {
         initialize();
+    }
+
+    public Wallet(PrivateKey privateKey, PublicKey publicKey, String blockchainAddress) {
+        this.privateKey = privateKey;
+        this.publicKey = publicKey;
+        this.blockchainAddress = blockchainAddress;
     }
 
     public void initialize() throws NoSuchAlgorithmException {
@@ -59,5 +66,17 @@ public class Wallet {
 
     public PublicKey getPublicKey() {
         return this.publicKey;
+    }
+
+    public PrivateKey getPrivateKey() {
+        return this.privateKey;
+    }
+
+    public String getHexStringPublicKey() {
+        return HexUtils.toHexString(publicKey.getEncoded());
+    }
+
+    public String getHexStringPrivateKey() {
+        return HexUtils.toHexString(privateKey.getEncoded());
     }
 }

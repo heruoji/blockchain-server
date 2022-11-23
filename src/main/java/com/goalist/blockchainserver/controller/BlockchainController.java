@@ -2,7 +2,9 @@ package com.goalist.blockchainserver.controller;
 
 import com.goalist.blockchainserver.dto.*;
 import com.goalist.blockchainserver.model.Transaction;
+import com.goalist.blockchainserver.model.Wallet;
 import com.goalist.blockchainserver.service.Blockchain;
+import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.List;
 
 import static com.goalist.blockchainserver.util.Converter.*;
@@ -40,12 +48,26 @@ public class BlockchainController {
     }
 
     @PostMapping("/transaction-pool")
-    public ResponseEntity<Void> postTransaction(@RequestBody PostTransactionPoolRequest request) {
+    public ResponseEntity<Void> postTransaction(@RequestBody PostTransactionPoolRequest request) throws Exception {
         Transaction transaction = new Transaction();
         transaction.setSenderBlockchainAddress(request.getSenderBlockchainAddress());
         transaction.setRecipientBlockchainAddress(request.getRecipientBlockchainAddress());
         transaction.setValue(request.getValue());
-//        blockchain.addTransaction(transaction, request.getPublicKey(), request.getSignature());
+        PrivateKey privateKey = convertPrivateKeyFromHexString(request.getPrivateKey());
+        PublicKey publicKey = convertPublicKeyFromHexString(request.getPublicKey());
+        Wallet senderWallet = new Wallet(privateKey, publicKey, request.getSenderBlockchainAddress());
+
+        blockchain.addTransaction(transaction, senderWallet.getPublicKey(), senderWallet.generateSignature(transaction));
         return new ResponseEntity<>(null, HttpStatus.OK);
+    }
+
+    @GetMapping("/wallet")
+    public ResponseEntity<GetWalletResponse> getWallet() throws NoSuchAlgorithmException {
+        Wallet wallet = new Wallet();
+        GetWalletResponse response = new GetWalletResponse();
+        response.setPrivateKey(wallet.getHexStringPrivateKey());
+        response.setPublicKey(wallet.getHexStringPublicKey());
+        response.setBlockchainAddress(wallet.getBlockchainAddress());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
