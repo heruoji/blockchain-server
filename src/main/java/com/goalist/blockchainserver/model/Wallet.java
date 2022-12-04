@@ -43,8 +43,16 @@ public class Wallet {
     }
 
     private void initializeBlockchainAddress() {
-//        TODO ハッシュ化しただけ。本来もっと複雑。
-        this.blockchainAddress = Sha256Algorithm.sha256(publicKey.toString());
+        this.blockchainAddress = generateBlockchainAddressFromPublicKey();
+    }
+
+    private String generateBlockchainAddressFromPublicKey() {
+        //        TODO ハッシュ化しただけ。本来もっと複雑。
+        return Sha256Algorithm.sha256(publicKey.toString());
+    }
+
+    public boolean confirmAddress(String checkAddress) {
+        return checkAddress.equals(generateBlockchainAddressFromPublicKey());
     }
 
     public String generateSignature(Transaction transaction) throws NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException, SignatureException {

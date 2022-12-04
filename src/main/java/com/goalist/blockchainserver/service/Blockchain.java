@@ -81,6 +81,20 @@ public class Blockchain {
         saveBlock(newBlock);
     }
 
+    public double calculateTotalAmount(String blockchainAddress) {
+        double totalAmount = 0.0;
+        for (Block chain:  chains){
+            for (Transaction transaction : chain.getTransactions()) {
+                if (transaction.getRecipientBlockchainAddress().equals(blockchainAddress)) {
+                    totalAmount += transaction.getValue();
+                } else if (transaction.getSenderBlockchainAddress().equals(blockchainAddress)) {
+                    totalAmount -= transaction.getValue();
+                }
+            }
+        }
+        return totalAmount;
+    }
+
     private String getPrevHash() {
         return this.chains.get(chains.size() - 1).hash();
     }
