@@ -4,26 +4,20 @@ import com.goalist.blockchainserver.dto.*;
 import com.goalist.blockchainserver.model.Transaction;
 import com.goalist.blockchainserver.model.Wallet;
 import com.goalist.blockchainserver.service.Blockchain;
-import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.List;
 
 import static com.goalist.blockchainserver.util.Converter.*;
 
 @RestController
+@CrossOrigin
 public class BlockchainController {
 
     @Autowired
@@ -47,6 +41,15 @@ public class BlockchainController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping("/deposits")
+    public ResponseEntity<GetAmountResponse> getDeposits(@RequestParam("address") String blockchainAddress) {
+        double totalAmount = blockchain.calculateTotalAmount(blockchainAddress);
+        GetAmountResponse response = new GetAmountResponse();
+        response.setTotalAmount(totalAmount);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+//    TODO WalletサーバーとBlockchainサーバーを分離
     @PostMapping("/transaction-pool")
     public ResponseEntity<Void> postTransaction(@RequestBody PostTransactionPoolRequest request) throws Exception {
         Transaction transaction = new Transaction();
@@ -56,6 +59,9 @@ public class BlockchainController {
         PrivateKey privateKey = convertPrivateKeyFromHexString(request.getPrivateKey());
         PublicKey publicKey = convertPublicKeyFromHexString(request.getPublicKey());
         Wallet senderWallet = new Wallet(privateKey, publicKey, request.getSenderBlockchainAddress());
+        if(!senderWallet.confirmAddress(request.getSenderBlockchainAddress())){
+            throw new Exception("情報が不正です");
+        };
 
         blockchain.addTransaction(transaction, senderWallet.getPublicKey(), senderWallet.generateSignature(transaction));
         return new ResponseEntity<>(null, HttpStatus.OK);
